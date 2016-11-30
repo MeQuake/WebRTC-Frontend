@@ -10,7 +10,7 @@ var uglify = require("gulp-uglify");
 var rtlcss = require("gulp-rtlcss");  
 var connect = require('gulp-connect');
 
-//*** Localhost server tast
+//*** Localhost server task
 gulp.task('localhost', function() {
   connect.server();
 });
@@ -20,6 +20,8 @@ gulp.task('localhost-live', function() {
     livereload: true
   });
 });
+
+gulp.task('localhost-live:minify', ['localhost-live', 'sass', 'minify', 'live:minify']);
 
 //*** SASS compiler task
 gulp.task('sass', function () {
@@ -60,11 +62,103 @@ gulp.task('sass:watch', function () {
 });
 
 gulp.task('live:minify', function () {
-	gulp.watch('./assets/global/scripts/!(*.min.js).js', function(event) {
-		gulp.src(event.path).pipe(uglify()).pipe(rename({suffix: '.min'})).pipe(gulp.dest('./assets/global/scripts/'));
+	// js live minify
+	gulp.watch('./assets/apps/scripts/!(*.min.js).js', { interval: 250 }, function(event) {
+		gulp.src(event.path).pipe(uglify()).on('error', swallowError).pipe(rename({suffix: '.min'})).pipe(gulp.dest('./assets/apps/scripts/'));
 	});
-	gulp.watch('./assets/pages/scripts/!(*.min.js).js', function(event) {
-		gulp.src(event.path).pipe(uglify()).pipe(rename({suffix: '.min'})).pipe(gulp.dest('./assets/pages/scripts/'));
+	gulp.watch('./assets/global/scripts/!(*.min.js).js', { interval: 250 }, function(event) {
+		gulp.src(event.path).pipe(uglify()).on('error', swallowError).pipe(rename({suffix: '.min'})).pipe(gulp.dest('./assets/global/scripts'));
+	});
+	gulp.watch('./assets/pages/scripts/!(*.min.js).js', { interval: 250 }, function(event) {
+		gulp.src(event.path).pipe(uglify()).on('error', swallowError).pipe(rename({suffix: '.min'})).pipe(gulp.dest('./assets/pages/scripts'));
+	});
+	gulp.watch('./assets/layouts/**/scripts/!(*.min.js).js', { interval: 250 }, function(event) {
+		gulp.src(event.path).pipe(uglify()).on('error', swallowError).pipe(rename({suffix: '.min'})).pipe(gulp.dest('./assets/layouts/'));
+	});
+	// css live minify
+	gulp.watch('./assets/apps/css/!(*.min.css).css', { interval: 250 }, function(event) {
+		gulp.src(event.path).pipe(minifyCss()).on('error', swallowError).pipe(rename({suffix: '.min'})).pipe(gulp.dest('./assets/apps/css/'));
+	});
+	gulp.watch('./assets/global/css/!(*.min.css).css', { interval: 250 }, function(event) {
+		gulp.src(event.path).pipe(minifyCss()).on('error', swallowError).pipe(rename({suffix: '.min'})).pipe(gulp.dest('./assets/global/css/'));
+	});
+	gulp.watch('./assets/pages/css/!(*.min.css).css', { interval: 250 }, function(event) {
+		gulp.src(event.path).pipe(minifyCss()).on('error', swallowError).pipe(rename({suffix: '.min'})).pipe(gulp.dest('./assets/pages/css/'));
+	});
+	gulp.watch('./assets/layouts/**/css/!(*.min.css).css', { interval: 250 }, function(event) {
+		gulp.src(event.path).pipe(rename({suffix: '.min'})).pipe(minifyCss()).on('error', swallowError).pipe(gulp.dest(function(file) {	return file.base }));
+	});
+	gulp.watch('./assets/layouts/**/css/**/!(*.min.css).css', { interval: 250 }, function(event) {
+		gulp.src(event.path).pipe(rename({suffix: '.min'})).pipe(minifyCss()).on('error', swallowError).pipe(gulp.dest(function(file) {	return file.base }));
+	});
+	gulp.watch('./assets/global/plugins/bootstrap/css/!(*.min.css).css', { interval: 250 }, function(event) {
+		gulp.src(event.path).pipe(rename({suffix: '.min'})).pipe(minifyCss()).on('error', swallowError).pipe(gulp.dest('./assets/global/plugins/bootstrap/css/'));
+	});
+	//sass live compile
+	  // bootstrap compilation
+	gulp.watch('./sass/bootstrap.scss', { interval: 250 }, function(event) {
+		gulp.src('./sass/bootstrap.scss').pipe(sass()).pipe(gulp.dest('./assets/global/plugins/bootstrap/css/'));
+	});
+
+  // select2 compilation using bootstrap variables
+	gulp.watch('./assets/global/plugins/select2/sass/select2-bootstrap.min.scss', { interval: 250 }, function(event) {
+		gulp.src('./assets/global/plugins/select2/sass/select2-bootstrap.min.scss').pipe(sass({outputStyle: 'compressed'})).pipe(gulp.dest('./assets/global/plugins/select2/css/'));
+	});
+
+  // global theme stylesheet compilation
+    gulp.watch('./sass/global/*.scss', { interval: 250 }, function(event) {
+		gulp.src('./sass/global/*.scss').pipe(sass()).pipe(gulp.dest('./assets/global/css'));
+	});
+	gulp.watch('./sass/apps/*.scss', { interval: 250 }, function(event) {
+		gulp.src('./sass/apps/*.scss').pipe(sass()).pipe(gulp.dest('./assets/apps/css'));
+	});
+	gulp.watch('./sass/pages/*.scss', { interval: 250 }, function(event) {
+		gulp.src('./sass/pages/*.scss').pipe(sass()).pipe(gulp.dest('./assets/pages/css'));
+	});
+
+  // theme layouts compilation
+    gulp.watch('./sass/layouts/layout/*.scss', { interval: 250 }, function(event) {
+		gulp.src('./sass/layouts/layout/*.scss').pipe(sass()).pipe(gulp.dest('./assets/layouts/layout/css'));
+	});
+
+	gulp.watch('./sass/layouts/layout/themes/*.scss', { interval: 250 }, function(event) {
+		gulp.src('./sass/layouts/layout/themes/*.scss').pipe(sass()).pipe(gulp.dest('./assets/layouts/layout/css/themes'));
+	});
+
+	gulp.watch('./sass/layouts/layout2/*.scss', { interval: 250 }, function(event) {
+		gulp.src('./sass/layouts/layout2/*.scss').pipe(sass()).pipe(gulp.dest('./assets/layouts/layout2/css'));
+	});
+
+	gulp.watch('./sass/layouts/layout2/themes/*.scss', { interval: 250 }, function(event) {
+		gulp.src('./sass/layouts/layout2/themes/*.scss').pipe(sass()).pipe(gulp.dest('./assets/layouts/layout2/css/themes'));
+	});
+
+	gulp.watch('./sass/layouts/layout3/*.scss', { interval: 250 }, function(event) {
+		gulp.src('./sass/layouts/layout3/*.scss').pipe(sass()).pipe(gulp.dest('./assets/layouts/layout3/css'));
+	});
+
+	gulp.watch('./sass/layouts/layout3/themes/*.scss', { interval: 250 }, function(event) {
+		gulp.src('./sass/layouts/layout3/themes/*.scss').pipe(sass()).pipe(gulp.dest('./assets/layouts/layout3/css/themes'));
+	});
+
+	gulp.watch('./sass/layouts/layout4/*.scss', { interval: 250 }, function(event) {
+		gulp.src('./sass/layouts/layout4/*.scss').pipe(sass()).pipe(gulp.dest('./assets/layouts/layout4/css'));
+	});
+
+	gulp.watch('./sass/layouts/layout4/themes/*.scss', { interval: 250 }, function(event) {
+		gulp.src('./sass/layouts/layout4/themes/*.scss').pipe(sass()).pipe(gulp.dest('./assets/layouts/layout4/css/themes'));
+	});
+
+	gulp.watch('./sass/layouts/layout5/*.scss', { interval: 250 }, function(event) {
+		gulp.src('./sass/layouts/layout5/*.scss').pipe(sass()).pipe(gulp.dest('./assets/layouts/layout5/css'));
+	});
+
+	gulp.watch('./sass/layouts/layout6/*.scss', { interval: 250 }, function(event) {
+		gulp.src('./sass/layouts/layout6/*.scss').pipe(sass()).pipe(gulp.dest('./assets/layouts/layout6/css'));
+	});
+
+	gulp.watch('./sass/layouts/layout7/*.scss', { interval: 250 }, function(event) {
+		gulp.src('./sass/layouts/layout7/*.scss').pipe(sass()).pipe(gulp.dest('./assets/layouts/layout7/css'));
 	});
 });
 
@@ -139,3 +233,10 @@ gulp.task('prettify', function() {
    		})).
    		pipe(gulp.dest('./'));
 });
+
+function swallowError (error) {
+  // If you want details of the error in the console
+  console.log(error.toString())
+
+  this.emit('end')
+}
